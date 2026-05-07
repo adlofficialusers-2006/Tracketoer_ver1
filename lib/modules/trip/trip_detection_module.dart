@@ -85,7 +85,7 @@ class TripDetectionModule {
         String endLocation =
             "Lat: ${position.latitude}, Lng: ${position.longitude}";
 
-        // 🔥 Create Trip object
+        // Create Trip object
         Trip trip = Trip(
           startLocation: startLocation,
           endLocation: endLocation,
@@ -95,7 +95,7 @@ class TripDetectionModule {
           endTime: tripEndTime,
         );
 
-        // 🔥 Print full trip details
+        // Print full trip details
         debugPrint(trip.toString());
 
         db.saveTrip(trip);

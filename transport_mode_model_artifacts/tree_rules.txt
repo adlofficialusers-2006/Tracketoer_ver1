@@ -1,0 +1,319 @@
+|--- acceleration_variance <= 3.74
+|   |--- avg_stop_duration_sec <= 54.50
+|   |   |--- stop_frequency_per_hr <= 5.54
+|   |   |   |--- acceleration_variance <= 2.00
+|   |   |   |   |--- avg_stop_duration_sec <= 34.00
+|   |   |   |   |   |--- avg_speed_kmph <= 21.12
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 17.70
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  17.70
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |--- avg_speed_kmph >  21.12
+|   |   |   |   |   |   |--- avg_speed_kmph <= 33.90
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.23
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- idle_ratio >  0.23
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- avg_speed_kmph >  33.90
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.10
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- idle_ratio >  0.10
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |--- avg_stop_duration_sec >  34.00
+|   |   |   |   |   |--- avg_speed_kmph <= 30.84
+|   |   |   |   |   |   |--- stop_frequency_per_hr <= 4.95
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- stop_frequency_per_hr >  4.95
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |--- avg_speed_kmph >  30.84
+|   |   |   |   |   |   |--- acceleration_variance <= 0.90
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- acceleration_variance >  0.90
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr <= 3.49
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr >  3.49
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |--- acceleration_variance >  2.00
+|   |   |   |   |--- avg_speed_kmph <= 30.24
+|   |   |   |   |   |--- avg_stop_duration_sec <= 42.70
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 19.65
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr <= 1.88
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr >  1.88
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  19.65
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.19
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- idle_ratio >  0.19
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |--- avg_stop_duration_sec >  42.70
+|   |   |   |   |   |   |--- idle_ratio <= 0.27
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- idle_ratio >  0.27
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |--- avg_speed_kmph >  30.24
+|   |   |   |   |   |--- stop_frequency_per_hr <= 3.32
+|   |   |   |   |   |   |--- acceleration_variance <= 2.26
+|   |   |   |   |   |   |   |--- acceleration_variance <= 2.19
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- acceleration_variance >  2.19
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- acceleration_variance >  2.26
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 16.30
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  16.30
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- stop_frequency_per_hr >  3.32
+|   |   |   |   |   |   |--- acceleration_variance <= 2.59
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 13.92
+|   |   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  13.92
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- acceleration_variance >  2.59
+|   |   |   |   |   |   |   |--- avg_speed_kmph <= 36.72
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_speed_kmph >  36.72
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |--- stop_frequency_per_hr >  5.54
+|   |   |   |--- stop_frequency_per_hr <= 6.56
+|   |   |   |   |--- idle_ratio <= 0.13
+|   |   |   |   |   |--- avg_stop_duration_sec <= 17.40
+|   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |--- avg_stop_duration_sec >  17.40
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 35.85
+|   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  35.85
+|   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |--- idle_ratio >  0.13
+|   |   |   |   |   |--- idle_ratio <= 0.23
+|   |   |   |   |   |   |--- acceleration_variance <= 1.75
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- acceleration_variance >  1.75
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 31.70
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  31.70
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- idle_ratio >  0.23
+|   |   |   |   |   |   |--- avg_speed_kmph <= 33.76
+|   |   |   |   |   |   |   |--- avg_speed_kmph <= 19.41
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- avg_speed_kmph >  19.41
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- avg_speed_kmph >  33.76
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |--- stop_frequency_per_hr >  6.56
+|   |   |   |   |--- stop_frequency_per_hr <= 7.79
+|   |   |   |   |   |--- avg_stop_duration_sec <= 51.75
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 27.90
+|   |   |   |   |   |   |   |--- avg_speed_kmph <= 36.53
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- avg_speed_kmph >  36.53
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  27.90
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.19
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- idle_ratio >  0.19
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |--- avg_stop_duration_sec >  51.75
+|   |   |   |   |   |   |--- class: bus
+|   |   |   |   |--- stop_frequency_per_hr >  7.79
+|   |   |   |   |   |--- avg_speed_kmph <= 31.23
+|   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |--- avg_speed_kmph >  31.23
+|   |   |   |   |   |   |--- idle_ratio <= 0.18
+|   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- idle_ratio >  0.18
+|   |   |   |   |   |   |   |--- acceleration_variance <= 3.05
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- acceleration_variance >  3.05
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |--- avg_stop_duration_sec >  54.50
+|   |   |--- stop_frequency_per_hr <= 6.72
+|   |   |   |--- acceleration_variance <= 3.08
+|   |   |   |   |--- stop_frequency_per_hr <= 5.48
+|   |   |   |   |   |--- avg_stop_duration_sec <= 58.10
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 56.15
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  56.15
+|   |   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |--- avg_stop_duration_sec >  58.10
+|   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |--- stop_frequency_per_hr >  5.48
+|   |   |   |   |   |--- stop_frequency_per_hr <= 5.91
+|   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |   |--- stop_frequency_per_hr >  5.91
+|   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |--- acceleration_variance >  3.08
+|   |   |   |   |--- class: car
+|   |   |--- stop_frequency_per_hr >  6.72
+|   |   |   |--- stop_frequency_per_hr <= 7.05
+|   |   |   |   |--- class: bus
+|   |   |   |--- stop_frequency_per_hr >  7.05
+|   |   |   |   |--- class: bus
+|--- acceleration_variance >  3.74
+|   |--- idle_ratio <= 0.09
+|   |   |--- acceleration_variance <= 6.00
+|   |   |   |--- stop_frequency_per_hr <= 2.16
+|   |   |   |   |--- avg_stop_duration_sec <= 20.10
+|   |   |   |   |   |--- idle_ratio <= 0.06
+|   |   |   |   |   |   |--- avg_speed_kmph <= 42.26
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 6.50
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  6.50
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |--- avg_speed_kmph >  42.26
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr <= 1.45
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr >  1.45
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |--- idle_ratio >  0.06
+|   |   |   |   |   |   |--- avg_speed_kmph <= 44.72
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 4.30
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  4.30
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- avg_speed_kmph >  44.72
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 7.20
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  7.20
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |--- avg_stop_duration_sec >  20.10
+|   |   |   |   |   |--- acceleration_variance <= 5.64
+|   |   |   |   |   |   |--- stop_frequency_per_hr <= 0.51
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- stop_frequency_per_hr >  0.51
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- acceleration_variance >  5.64
+|   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |--- stop_frequency_per_hr >  2.16
+|   |   |   |   |--- stop_frequency_per_hr <= 5.64
+|   |   |   |   |   |--- stop_frequency_per_hr <= 3.02
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 21.45
+|   |   |   |   |   |   |   |--- acceleration_variance <= 5.01
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- acceleration_variance >  5.01
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  21.45
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 25.80
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  25.80
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- stop_frequency_per_hr >  3.02
+|   |   |   |   |   |   |--- avg_speed_kmph <= 34.09
+|   |   |   |   |   |   |   |--- avg_speed_kmph <= 30.53
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_speed_kmph >  30.53
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- avg_speed_kmph >  34.09
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 5.20
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  5.20
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |--- stop_frequency_per_hr >  5.64
+|   |   |   |   |   |--- class: bus
+|   |   |--- acceleration_variance >  6.00
+|   |   |   |--- avg_stop_duration_sec <= 23.05
+|   |   |   |   |--- stop_frequency_per_hr <= 3.39
+|   |   |   |   |   |--- acceleration_variance <= 6.81
+|   |   |   |   |   |   |--- stop_frequency_per_hr <= 2.42
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 2.30
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  2.30
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |--- stop_frequency_per_hr >  2.42
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.04
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |   |--- idle_ratio >  0.04
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- acceleration_variance >  6.81
+|   |   |   |   |   |   |--- stop_frequency_per_hr <= 3.28
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 16.75
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  16.75
+|   |   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |   |--- stop_frequency_per_hr >  3.28
+|   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |--- stop_frequency_per_hr >  3.39
+|   |   |   |   |   |--- acceleration_variance <= 7.41
+|   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- acceleration_variance >  7.41
+|   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |--- avg_stop_duration_sec >  23.05
+|   |   |   |   |--- acceleration_variance <= 7.63
+|   |   |   |   |   |--- avg_stop_duration_sec <= 35.10
+|   |   |   |   |   |   |--- acceleration_variance <= 6.90
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 23.90
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  23.90
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- acceleration_variance >  6.90
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- avg_stop_duration_sec >  35.10
+|   |   |   |   |   |   |--- class: heavy_vehicle
+|   |   |   |   |--- acceleration_variance >  7.63
+|   |   |   |   |   |--- class: motorcycle
+|   |--- idle_ratio >  0.09
+|   |   |--- stop_frequency_per_hr <= 6.92
+|   |   |   |--- avg_speed_kmph <= 29.07
+|   |   |   |   |--- acceleration_variance <= 4.21
+|   |   |   |   |   |--- avg_stop_duration_sec <= 26.60
+|   |   |   |   |   |   |--- stop_frequency_per_hr <= 3.96
+|   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |--- stop_frequency_per_hr >  3.96
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- avg_stop_duration_sec >  26.60
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 47.65
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  47.65
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr <= 5.25
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |   |   |--- stop_frequency_per_hr >  5.25
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |--- acceleration_variance >  4.21
+|   |   |   |   |   |--- idle_ratio <= 0.31
+|   |   |   |   |   |   |--- acceleration_variance <= 6.75
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec <= 8.50
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- avg_stop_duration_sec >  8.50
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- acceleration_variance >  6.75
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.22
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- idle_ratio >  0.22
+|   |   |   |   |   |   |   |   |--- class: bus
+|   |   |   |   |   |--- idle_ratio >  0.31
+|   |   |   |   |   |   |--- class: bus
+|   |   |   |--- avg_speed_kmph >  29.07
+|   |   |   |   |--- acceleration_variance <= 8.96
+|   |   |   |   |   |--- stop_frequency_per_hr <= 0.89
+|   |   |   |   |   |   |--- acceleration_variance <= 6.48
+|   |   |   |   |   |   |   |--- idle_ratio <= 0.09
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |   |--- idle_ratio >  0.09
+|   |   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- acceleration_variance >  6.48
+|   |   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |--- stop_frequency_per_hr >  0.89
+|   |   |   |   |   |   |--- avg_stop_duration_sec <= 2.40
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |   |--- avg_stop_duration_sec >  2.40
+|   |   |   |   |   |   |   |--- class: car
+|   |   |   |   |--- acceleration_variance >  8.96
+|   |   |   |   |   |--- avg_speed_kmph <= 37.12
+|   |   |   |   |   |   |--- class: motorcycle
+|   |   |   |   |   |--- avg_speed_kmph >  37.12
+|   |   |   |   |   |   |--- class: motorcycle
+|   |   |--- stop_frequency_per_hr >  6.92
+|   |   |   |--- acceleration_variance <= 4.38
+|   |   |   |   |--- idle_ratio <= 0.14
+|   |   |   |   |   |--- class: bus
+|   |   |   |   |--- idle_ratio >  0.14
+|   |   |   |   |   |--- class: bus
+|   |   |   |--- acceleration_variance >  4.38
+|   |   |   |   |--- stop_frequency_per_hr <= 6.94
+|   |   |   |   |   |--- class: bus
+|   |   |   |   |--- stop_frequency_per_hr >  6.94
+|   |   |   |   |   |--- stop_frequency_per_hr <= 7.25
+|   |   |   |   |   |   |--- class: car
+|   |   |   |   |   |--- stop_frequency_per_hr >  7.25
+|   |   |   |   |   |   |--- class: car

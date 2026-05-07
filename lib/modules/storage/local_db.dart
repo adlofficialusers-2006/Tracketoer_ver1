@@ -19,7 +19,10 @@ class LocalDB {
   }
 
   void saveTrip(Trip trip) {
-    box.add(trip.toMap());
+    final tripMap = trip.toMap();
+    tripMap['tripNumber'] = box.length + 1;
+    tripMap['synced'] = false;
+    box.add(tripMap);
   }
 
   void saveMovementLog(MovementLog log) {

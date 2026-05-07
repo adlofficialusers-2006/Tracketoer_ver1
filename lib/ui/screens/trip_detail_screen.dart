@@ -86,10 +86,40 @@ class TripDetailScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildSection('Travel Details', [
               _buildRow('Mode', trip['mode'] ?? 'Unknown'),
+              _buildRow(
+                'Mode confidence',
+                '${(((trip['modeConfidence'] as num?)?.toDouble() ?? 0) * 100).toStringAsFixed(0)}%',
+              ),
+              _buildRow('Mode source', trip['modeSource'] ?? 'Unknown'),
               _buildRow('Purpose', trip['purpose'] ?? 'Unknown'),
               _buildRow('Cost', trip['cost'] ?? 'Unknown'),
               _buildRow('Companions', trip['companions'] ?? 'Unknown'),
               _buildRow('Frequency', trip['frequency'] ?? 'Unknown'),
+            ]),
+            const SizedBox(height: 16),
+            _buildSection('Movement Metrics', [
+              _buildRow(
+                'Average speed',
+                '${((trip['avgSpeedKmph'] as num?)?.toDouble() ?? 0).toStringAsFixed(1)} km/h',
+              ),
+              _buildRow(
+                'Idle ratio',
+                '${(((trip['idleRatio'] as num?)?.toDouble() ?? 0) * 100).toStringAsFixed(0)}%',
+              ),
+              _buildRow(
+                'Acceleration variance',
+                ((trip['accelerationVariance'] as num?)?.toDouble() ?? 0)
+                    .toStringAsFixed(2),
+              ),
+              _buildRow(
+                'Average stop',
+                '${((trip['avgStopDurationSec'] as num?)?.toDouble() ?? 0).toStringAsFixed(1)} sec',
+              ),
+              _buildRow(
+                'Stops per hour',
+                ((trip['stopFrequencyPerHr'] as num?)?.toDouble() ?? 0)
+                    .toStringAsFixed(1),
+              ),
             ]),
             const SizedBox(height: 16),
             _buildSection('Timeline', [

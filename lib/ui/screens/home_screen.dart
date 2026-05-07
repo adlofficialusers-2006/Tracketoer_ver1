@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
+import '../../modules/background/background_trip_service.dart';
 import '../../modules/traffic/traffic_event.dart';
 import '../../modules/trip/trip_lifecycle_controller.dart';
 import '../../modules/trip/trip_model.dart';
@@ -17,13 +18,38 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      BackgroundTripService.stop();
       context.read<TripLifecycleController>().start();
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final tracker = context.read<TripLifecycleController>();
+    if (state == AppLifecycleState.resumed) {
+      BackgroundTripService.stop();
+      tracker.start();
+      return;
+    }
+
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.inactive) {
+      tracker.stop();
+      BackgroundTripService.start();
+    }
   }
 
   @override
@@ -221,6 +247,20 @@ class _HomeScreenState extends State<HomeScreen> {
                               _buildMetricBlock(
                                 'Elapsed',
                                 formatDuration(tracker.elapsedDuration),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 18),
+                          Row(
+                            children: [
+                              _buildMetricBlock(
+                                'Avg speed',
+                                '${tracker.currentFeatures.avgSpeedKmph.toStringAsFixed(1)} km/h',
+                              ),
+                              const SizedBox(width: 18),
+                              _buildMetricBlock(
+                                'Idle',
+                                '${(tracker.currentFeatures.idleRatio * 100).toStringAsFixed(0)}%',
                               ),
                             ],
                           ),
