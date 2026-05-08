@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../modules/background/background_trip_service.dart';
+import '../../modules/traffic/traffic_event.dart';
 import '../../modules/trip/trip_lifecycle_controller.dart';
 import '../../modules/trip/trip_model.dart';
 import '../../ui/widgets/glass_card.dart';
@@ -22,8 +24,8 @@ class _HomeScreenState extends State<HomeScreen>
     with WidgetsBindingObserver, SingleTickerProviderStateMixin {
   static const LatLng _defaultCameraTarget = LatLng(8.5241, 76.9366);
 
-  final Set<Polyline> _polylines = {};
-  GoogleMapController? _mapController;
+  final List<LatLng> _routePoints = [];
+  final MapController _mapController = MapController();
   late final AnimationController _markerController;
   late Animation<double> _markerAnimation;
   LatLng? _markerAnimationStart;
@@ -45,6 +47,7 @@ class _HomeScreenState extends State<HomeScreen>
       curve: Curves.easeOutCubic,
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => _mapReady = true);
       BackgroundTripService.stop();
       context.read<TripLifecycleController>().start();
     });
@@ -94,11 +97,15 @@ class _HomeScreenState extends State<HomeScreen>
             : AppColors.neonBlue,
         foregroundColor: Colors.black,
         tooltip: tracker.hasActiveTrip ? 'End trip' : 'Start trip',
-        onPressed: tracker.hasActiveTrip ? tracker.manualEnd : tracker.manualStart,
+        onPressed: tracker.hasActiveTrip
+            ? tracker.manualEnd
+            : tracker.manualStart,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 220),
           child: Icon(
-            tracker.hasActiveTrip ? Icons.stop_rounded : Icons.play_arrow_rounded,
+            tracker.hasActiveTrip
+                ? Icons.stop_rounded
+                : Icons.play_arrow_rounded,
             key: ValueKey(tracker.hasActiveTrip),
           ),
         ),
@@ -167,26 +174,53 @@ class _HomeScreenState extends State<HomeScreen>
               child: AnimatedOpacity(
                 opacity: _mapReady ? 1 : 0,
                 duration: const Duration(milliseconds: 650),
-                child: GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: cameraTarget,
-                    zoom: currentTarget == null ? 13 : 16.8,
-                    tilt: 48,
-                    bearing: 18,
+                child: FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: cameraTarget,
+                    initialZoom: currentTarget == null ? 13 : 16.8,
+                    interactionOptions: const InteractionOptions(
+                      flags:
+                          InteractiveFlag.drag |
+                          InteractiveFlag.pinchZoom |
+                          InteractiveFlag.doubleTapZoom,
+                    ),
                   ),
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                    controller.setMapStyle(_darkMapStyle);
-                    setState(() => _mapReady = true);
-                    _animateCameraTo(cameraTarget);
-                  },
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: false,
-                  compassEnabled: false,
-                  mapToolbarEnabled: false,
-                  zoomControlsEnabled: false,
-                  markers: _buildMarkers(tracker, currentTarget),
-                  polylines: _polylines,
+                  children: [
+                    TileLayer(
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                      userAgentPackageName: 'govt_tracker_version_1',
+                      retinaMode: RetinaMode.isHighDensity(context),
+                    ),
+                    if (_routePoints.length >= 2)
+                      PolylineLayer(
+                        polylines: [
+                          Polyline(
+                            points: _routePoints,
+                            color: AppColors.neonPurple.withValues(alpha: 0.36),
+                            strokeWidth: 14,
+                          ),
+                          Polyline(
+                            points: _routePoints,
+                            color: AppColors.neonAccent,
+                            strokeWidth: 6,
+                          ),
+                        ],
+                      ),
+                    MarkerLayer(markers: _buildMarkers(tracker, currentTarget)),
+                    RichAttributionWidget(
+                      attributions: [
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          textStyle: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -232,7 +266,10 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(14),
-                  child: Image.asset('assets/images/logo.jpeg', fit: BoxFit.cover),
+                  child: Image.asset(
+                    'assets/images/logo.jpeg',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -365,21 +402,23 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  Set<Marker> _buildMarkers(
+  List<Marker> _buildMarkers(
     TripLifecycleController tracker,
     LatLng? currentTarget,
   ) {
-    final markers = <Marker>{};
+    final markers = <Marker>[];
     final start = tracker.tripStartPosition;
     if (start != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('start-point'),
-          position: LatLng(start.latitude, start.longitude),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueAzure,
+          point: LatLng(start.latitude, start.longitude),
+          width: 42,
+          height: 42,
+          child: Icon(
+            Icons.location_on_rounded,
+            color: AppColors.neonBlue,
+            size: 42,
           ),
-          infoWindow: const InfoWindow(title: 'Start point'),
         ),
       );
     }
@@ -388,13 +427,28 @@ class _HomeScreenState extends State<HomeScreen>
     if (movingPosition != null) {
       markers.add(
         Marker(
-          markerId: const MarkerId('moving-position'),
-          position: movingPosition,
-          anchor: const Offset(0.5, 0.5),
-          icon: BitmapDescriptor.defaultMarkerWithHue(
-            BitmapDescriptor.hueViolet,
+          point: movingPosition,
+          width: 44,
+          height: 44,
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.neonPurple.withValues(alpha: 0.18),
+              border: Border.all(color: AppColors.neonPurple, width: 2),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.neonPurple.withValues(alpha: 0.38),
+                  blurRadius: 18,
+                  spreadRadius: 4,
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.navigation_rounded,
+              color: AppColors.neonAccent,
+              size: 22,
+            ),
           ),
-          infoWindow: const InfoWindow(title: 'Current location'),
         ),
       );
     }
@@ -433,32 +487,9 @@ class _HomeScreenState extends State<HomeScreen>
       points.add(movingPoint);
     }
 
-    _polylines
+    _routePoints
       ..clear()
-      ..addAll(
-        points.length < 2
-            ? const <Polyline>{}
-            : {
-                Polyline(
-                  polylineId: const PolylineId('live-route-glow'),
-                  points: points,
-                  color: AppColors.neonPurple.withValues(alpha: 0.36),
-                  width: 14,
-                  jointType: JointType.round,
-                  startCap: Cap.roundCap,
-                  endCap: Cap.roundCap,
-                ),
-                Polyline(
-                  polylineId: const PolylineId('live-route'),
-                  points: points,
-                  color: AppColors.neonAccent,
-                  width: 6,
-                  jointType: JointType.round,
-                  startCap: Cap.roundCap,
-                  endCap: Cap.roundCap,
-                ),
-              },
-      );
+      ..addAll(points);
   }
 
   void _updateAnimatedMarker() {
@@ -475,11 +506,15 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _animateCameraTo(LatLng target) {
-    _mapController?.animateCamera(
-      CameraUpdate.newCameraPosition(
-        CameraPosition(target: target, zoom: 16.8, tilt: 48, bearing: 18),
-      ),
-    );
+    if (!_mapReady) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      try {
+        _mapController.move(target, 16.8);
+      } catch (_) {
+        // The map controller is attached after the first FlutterMap layout pass.
+      }
+    });
   }
 
   bool _sameLatLng(LatLng first, LatLng second) {
@@ -518,7 +553,10 @@ class _HomeScreenState extends State<HomeScreen>
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: ClipOval(
-                child: Image.asset('assets/images/logo.jpeg', fit: BoxFit.cover),
+                child: Image.asset(
+                  'assets/images/logo.jpeg',
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
@@ -588,7 +626,10 @@ class _HomeScreenState extends State<HomeScreen>
                 '${tracker.currentSpeedKmph.toStringAsFixed(1)} km/h',
               ),
               const SizedBox(width: 18),
-              _buildMetricBlock('Elapsed', formatDuration(tracker.elapsedDuration)),
+              _buildMetricBlock(
+                'Elapsed',
+                formatDuration(tracker.elapsedDuration),
+              ),
             ],
           ),
           const SizedBox(height: 18),
@@ -608,9 +649,15 @@ class _HomeScreenState extends State<HomeScreen>
           const SizedBox(height: 18),
           Row(
             children: [
-              _buildMetricBlock('Latitude', formatCoordinate(position?.latitude)),
+              _buildMetricBlock(
+                'Latitude',
+                formatCoordinate(position?.latitude),
+              ),
               const SizedBox(width: 18),
-              _buildMetricBlock('Longitude', formatCoordinate(position?.longitude)),
+              _buildMetricBlock(
+                'Longitude',
+                formatCoordinate(position?.longitude),
+              ),
             ],
           ),
         ],
@@ -778,26 +825,6 @@ class _HomeScreenState extends State<HomeScreen>
       MaterialPageRoute(builder: (_) => const TripListScreen()),
     );
   }
-
-  static const String _darkMapStyle = '''
-[
-  {"elementType":"geometry","stylers":[{"color":"#070b17"}]},
-  {"elementType":"labels.icon","stylers":[{"visibility":"off"}]},
-  {"elementType":"labels.text.fill","stylers":[{"color":"#8ea0c6"}]},
-  {"elementType":"labels.text.stroke","stylers":[{"color":"#070b17"}]},
-  {"featureType":"administrative","elementType":"geometry","stylers":[{"color":"#18213a"}]},
-  {"featureType":"poi","elementType":"geometry","stylers":[{"color":"#10182c"}]},
-  {"featureType":"poi.park","elementType":"geometry","stylers":[{"color":"#071b18"}]},
-  {"featureType":"road","elementType":"geometry","stylers":[{"color":"#17213a"}]},
-  {"featureType":"road","elementType":"geometry.stroke","stylers":[{"color":"#263455"}]},
-  {"featureType":"road.arterial","elementType":"geometry","stylers":[{"color":"#202d4d"}]},
-  {"featureType":"road.highway","elementType":"geometry","stylers":[{"color":"#334069"}]},
-  {"featureType":"road.highway","elementType":"geometry.stroke","stylers":[{"color":"#46517d"}]},
-  {"featureType":"transit","elementType":"geometry","stylers":[{"color":"#111a2e"}]},
-  {"featureType":"water","elementType":"geometry","stylers":[{"color":"#03111f"}]},
-  {"featureType":"water","elementType":"labels.text.fill","stylers":[{"color":"#4f6f91"}]}
-]
-''';
 }
 
 class _MapGlassPanel extends StatelessWidget {
@@ -816,9 +843,7 @@ class _MapGlassPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF070B17).withValues(alpha: 0.64),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: AppColors.neonPurple.withValues(alpha: 0.26),
-        ),
+        border: Border.all(color: AppColors.neonPurple.withValues(alpha: 0.26)),
         boxShadow: [
           BoxShadow(
             color: AppColors.neonPurple.withValues(alpha: 0.18),
@@ -944,7 +969,9 @@ class _LiveIndicatorState extends State<_LiveIndicator>
           height: 11 + (pulse * 7),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: widget.active ? AppColors.neonAccent : AppColors.textSecondary,
+            color: widget.active
+                ? AppColors.neonAccent
+                : AppColors.textSecondary,
             boxShadow: widget.active
                 ? [
                     BoxShadow(

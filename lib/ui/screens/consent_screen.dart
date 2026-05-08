@@ -57,117 +57,132 @@ class _ConsentScreenState extends State<ConsentScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 12),
-              Text(
-                'travel Tracker',
-                style: TextStyle(
-                  color: AppColors.neonPurple,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w800,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 40,
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'A premium travel research app that captures automatic trips and guides users to add travel details securely.',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 16,
-                  height: 1.6,
-                ),
-              ),
-              const SizedBox(height: 28),
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Data Collection Overview',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 12),
+                    Text(
+                      'travel Tracker',
+                      style: TextStyle(
+                        color: AppColors.neonPurple,
+                        fontSize: 36,
+                        fontWeight: FontWeight.w800,
                       ),
-                      const SizedBox(height: 16),
-                      _buildBullet(
-                        'Background GPS trip detection for start/end capture',
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'A premium travel research app that captures automatic trips and guides users to add travel details securely.',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 16,
+                        height: 1.6,
                       ),
-                      _buildBullet(
-                        'Distance, duration, and route summary storage',
+                    ),
+                    const SizedBox(height: 28),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: AppColors.border),
                       ),
-                      _buildBullet(
-                        'User-provided mode, purpose, cost, and companions',
-                      ),
-                      _buildBullet('ML-based mode prediction after each trip'),
-                      _buildBullet('Local storage with safe sync-ready state'),
-                      const Spacer(),
-                      SwitchListTile.adaptive(
-                        value: locationConsent,
-                        onChanged: (value) =>
-                            setState(() => locationConsent = value),
-                        title: const Text(
-                          'Enable Location Permission',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                        subtitle: const Text(
-                          'Choose Allow all the time when the device asks.',
-                          style: TextStyle(color: Colors.white60),
-                        ),
-                        activeThumbColor: AppColors.neonBlue,
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                message,
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isLoading ? null : requestConsent,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.neonBlue,
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  child: isLoading
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.black,
-                            strokeWidth: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Data Collection Overview',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
-                        )
-                      : const Text(
-                          'Agree & Continue',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
+                          const SizedBox(height: 16),
+                          _buildBullet(
+                            'Background GPS trip detection for start/end capture',
                           ),
+                          _buildBullet(
+                            'Distance, duration, and route summary storage',
+                          ),
+                          _buildBullet(
+                            'User-provided mode, purpose, cost, and companions',
+                          ),
+                          _buildBullet(
+                            'ML-based mode prediction after each trip',
+                          ),
+                          _buildBullet(
+                            'Local storage with safe sync-ready state',
+                          ),
+                          const SizedBox(height: 8),
+                          SwitchListTile.adaptive(
+                            value: locationConsent,
+                            onChanged: (value) =>
+                                setState(() => locationConsent = value),
+                            title: const Text(
+                              'Enable Location Permission',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            subtitle: const Text(
+                              'Choose Allow all the time when the device asks.',
+                              style: TextStyle(color: Colors.white60),
+                            ),
+                            activeThumbColor: AppColors.neonBlue,
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      message,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : requestConsent,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.neonBlue,
+                          foregroundColor: Colors.black,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.black,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Agree & Continue',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
