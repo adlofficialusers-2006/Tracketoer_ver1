@@ -33,9 +33,10 @@ dependencies:
 
   geolocator: ^10.1.0
   geocoding: ^2.1.1
-  google_maps_flutter: ^2.6.1
+  flutter_map: ^8.3.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
+  latlong2: ^0.9.1
   provider: ^6.1.2
   flutter_background_service: ^5.1.0
   flutter_background_service_android: ^6.3.1
