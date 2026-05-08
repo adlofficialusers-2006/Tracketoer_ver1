@@ -10,6 +10,6 @@ The script writes:
 
 - `model.pkl` for Python/server-side reuse.
 - `transport_mode_model.json` for the Flutter on-device predictor.
-- `training_summary.json` and `tree_rules.txt` for model review.
+- `training_summary.json` and `xgboost_trees.json` for model review.
 
-Current training run: 5,000 rows, four labels, 89.2% holdout accuracy, 89.3% mean five-fold cross-validation accuracy.
+The trainer uses `xgboost.XGBClassifier`, so install `xgboost` in the Python environment before retraining.
