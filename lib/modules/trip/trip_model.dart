@@ -26,8 +26,19 @@ class Trip {
   final Duration duration;
   final DateTime startTime;
   final DateTime endTime;
+  final double? startLatitude;
+  final double? startLongitude;
+  final double? endLatitude;
+  final double? endLongitude;
   final Duration pausedDuration;
   final Duration trafficDelayDuration;
+  final double avgSpeedKmph;
+  final double idleRatio;
+  final double accelerationVariance;
+  final double avgStopDurationSec;
+  final double stopFrequencyPerHr;
+  final double modeConfidence;
+  final String modeSource;
   String mode;
   String purpose;
   String cost;
@@ -41,8 +52,19 @@ class Trip {
     required this.duration,
     required this.startTime,
     required this.endTime,
+    this.startLatitude,
+    this.startLongitude,
+    this.endLatitude,
+    this.endLongitude,
     this.pausedDuration = Duration.zero,
     this.trafficDelayDuration = Duration.zero,
+    this.avgSpeedKmph = 0,
+    this.idleRatio = 0,
+    this.accelerationVariance = 0,
+    this.avgStopDurationSec = 0,
+    this.stopFrequencyPerHr = 0,
+    this.modeConfidence = 0,
+    this.modeSource = 'manual',
     this.mode = 'Unknown',
     this.purpose = 'Unknown',
     this.cost = '0',
@@ -58,8 +80,19 @@ class Trip {
       'duration': duration.inSeconds,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
+      'startLatitude': startLatitude,
+      'startLongitude': startLongitude,
+      'endLatitude': endLatitude,
+      'endLongitude': endLongitude,
       'pausedDuration': pausedDuration.inSeconds,
       'trafficDelayDuration': trafficDelayDuration.inSeconds,
+      'avgSpeedKmph': avgSpeedKmph,
+      'idleRatio': idleRatio,
+      'accelerationVariance': accelerationVariance,
+      'avgStopDurationSec': avgStopDurationSec,
+      'stopFrequencyPerHr': stopFrequencyPerHr,
+      'modeConfidence': modeConfidence,
+      'modeSource': modeSource,
       'mode': mode,
       'purpose': purpose,
       'cost': cost,
@@ -80,12 +113,26 @@ class Trip {
       endTime:
           DateTime.tryParse(map['endTime'] as String? ?? '') ??
           DateTime.fromMillisecondsSinceEpoch(0),
+      startLatitude: (map['startLatitude'] as num?)?.toDouble(),
+      startLongitude: (map['startLongitude'] as num?)?.toDouble(),
+      endLatitude: (map['endLatitude'] as num?)?.toDouble(),
+      endLongitude: (map['endLongitude'] as num?)?.toDouble(),
       pausedDuration: Duration(
         seconds: (map['pausedDuration'] as num?)?.toInt() ?? 0,
       ),
       trafficDelayDuration: Duration(
         seconds: (map['trafficDelayDuration'] as num?)?.toInt() ?? 0,
       ),
+      avgSpeedKmph: (map['avgSpeedKmph'] as num?)?.toDouble() ?? 0,
+      idleRatio: (map['idleRatio'] as num?)?.toDouble() ?? 0,
+      accelerationVariance:
+          (map['accelerationVariance'] as num?)?.toDouble() ?? 0,
+      avgStopDurationSec:
+          (map['avgStopDurationSec'] as num?)?.toDouble() ?? 0,
+      stopFrequencyPerHr:
+          (map['stopFrequencyPerHr'] as num?)?.toDouble() ?? 0,
+      modeConfidence: (map['modeConfidence'] as num?)?.toDouble() ?? 0,
+      modeSource: map['modeSource'] as String? ?? 'manual',
       mode: map['mode'] as String? ?? 'Unknown',
       purpose: map['purpose'] as String? ?? 'Unknown',
       cost: map['cost'] as String? ?? '0',
@@ -104,7 +151,13 @@ Distance: ${distance.toStringAsFixed(1)} m
 Duration: ${duration.inSeconds} sec
 Paused: ${pausedDuration.inSeconds} sec
 Traffic delay: ${trafficDelayDuration.inSeconds} sec
+Avg speed: ${avgSpeedKmph.toStringAsFixed(1)} km/h
+Idle ratio: ${idleRatio.toStringAsFixed(2)}
+Acceleration variance: ${accelerationVariance.toStringAsFixed(2)}
+Avg stop: ${avgStopDurationSec.toStringAsFixed(1)} sec
+Stops/hr: ${stopFrequencyPerHr.toStringAsFixed(1)}
 Mode: $mode
+Mode confidence: ${(modeConfidence * 100).toStringAsFixed(0)}%
 Purpose: $purpose
 Cost: $cost
 Companions: $companions

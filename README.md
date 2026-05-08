@@ -1,17 +1,45 @@
-# govt_tracker_version_1
+# NATPAC Travel Tracker
 
-A new Flutter project.
+Deployment-ready Flutter app for automatic trip capture and NATPAC travel survey enrichment.
 
-## Getting Started
+## What it captures
 
-This project is a starting point for a Flutter application.
+- Trip number
+- Origin latitude/longitude and start time
+- Destination latitude/longitude and end time
+- Distance, duration, traffic delay, and idle/stop metrics
+- ML-predicted travel mode with confidence
+- User-confirmed purpose, companions, frequency, and cost
+- Local sync-ready records for NATPAC server upload
 
-A few resources to get you started if this is your first Flutter project:
+## Background tracking
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+The foreground UI runs live tracking while the app is open. When the app goes to the background, a foreground location service takes over so trip detection continues after the user has granted location consent.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Android release builds require a proper signing config before Play Store or field deployment. The current debug signing block is only for local testing.
+
+## Model
+
+The trained Python model is saved at `assets/models/model.pkl`. Flutter uses `assets/models/transport_mode_model.json`, an exported decision tree that predicts `Bus`, `Car`, `Heavy vehicle`, or `Motorcycle` from:
+
+- average speed
+- idle ratio
+- acceleration variance
+- average stop duration
+- stop frequency per hour
+
+Retrain with:
+
+```powershell
+python ml/train_transport_mode_model.py --csv E:\ADL\ML\data.csv --out assets\models
+```
+
+## Server sync
+
+Set a NATPAC endpoint at build/run time:
+
+```powershell
+flutter run --dart-define=NATPAC_SYNC_ENDPOINT=https://your-server.example/trips
+```
+
+`TripSyncService.uploadPendingTrips()` posts unsynced trip JSON and marks successful records as synced.

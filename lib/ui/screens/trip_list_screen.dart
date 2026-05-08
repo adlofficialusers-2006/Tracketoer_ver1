@@ -93,7 +93,8 @@ class _TripListScreenState extends State<TripListScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        'Mode: ${trip.mode}',
+                        'Mode: ${trip.mode}'
+                        '${trip.modeSource == 'ml' ? ' (${(trip.modeConfidence * 100).toStringAsFixed(0)}%)' : ''}',
                         style: const TextStyle(color: AppColors.neonBlue),
                       ),
                       if (trip.trafficDelayDuration > Duration.zero) ...[

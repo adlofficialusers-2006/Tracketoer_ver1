@@ -49,6 +49,17 @@
 	</dict>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+		<string>fetch</string>
+	</array>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Travel Tracker uses background location to detect trip start and end points for NATPAC transport planning.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Travel Tracker uses location to capture trip origin, destination, distance, and travel mode.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Travel Tracker uses always-on location to continue trip capture when the app is closed.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

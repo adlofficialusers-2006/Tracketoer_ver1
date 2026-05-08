@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../location/location_tracking_module.dart';
+import '../ml/transport_mode_predictor.dart';
+import '../ml/trip_feature_tracker.dart';
 import '../storage/local_db.dart';
 import '../traffic/crowd_detection_service.dart';
 import '../traffic/movement_log.dart';
@@ -14,12 +16,14 @@ class TripLifecycleController extends ChangeNotifier {
     required this.locationModule,
     required this.db,
     required this.crowdDetectionService,
+    required this.transportModePredictor,
     this.deviceId = 'local-device',
   });
 
   final LocationTrackingModule locationModule;
   final LocalDB db;
   final CrowdDetectionService crowdDetectionService;
+  final TransportModePredictor transportModePredictor;
   final String deviceId;
 
   static const double startSpeedThresholdKmph = 5;
@@ -37,6 +41,9 @@ class TripLifecycleController extends ChangeNotifier {
   DateTime? _pauseStartedAt;
   DateTime? _lastTrafficDelayAt;
   String _startLocation = 'Unknown';
+  Position? _tripStartPosition;
+  final List<Position> _routePositions = [];
+  final TripFeatureTracker _featureTracker = TripFeatureTracker();
 
   TripStatus _status = TripStatus.idle;
   double _distanceMeters = 0;
@@ -51,8 +58,14 @@ class TripLifecycleController extends ChangeNotifier {
   double get distanceMeters => _distanceMeters;
   double get currentSpeedKmph => _currentSpeedKmph;
   Position? get currentPosition => _currentPosition;
+  Position? get tripStartPosition => _tripStartPosition;
+  List<Position> get routePositions => List.unmodifiable(_routePositions);
   bool get needsStopConfirmation => _needsStopConfirmation;
   CrowdDetectionResult get crowdResult => _crowdResult;
+  TripFeatureSnapshot get currentFeatures => _featureTracker.snapshot(
+        tripDuration: elapsedDuration,
+        distanceMeters: _distanceMeters,
+      );
 
   bool get hasActiveTrip =>
       _tripStartAt != null &&
@@ -83,13 +96,22 @@ class TripLifecycleController extends ChangeNotifier {
     _positionSubscription = stream.listen(processLocation);
   }
 
+  Future<void> stop() async {
+    await _positionSubscription?.cancel();
+    _positionSubscription = null;
+  }
+
   void processLocation(Position position) {
     final now = DateTime.now();
     _currentPosition = position;
-    _currentSpeedKmph = (position.speed * 3.6).clamp(0, 220);
+    _currentSpeedKmph = (position.speed * 3.6).clamp(0, 220).toDouble();
 
     _saveMovementPing(position, now);
     _updateDistance(position);
+    _captureRoutePoint(position);
+    if (_tripStartAt != null) {
+      _featureTracker.addSample(timestamp: now, speedKmph: _currentSpeedKmph);
+    }
     _lastPosition = position;
 
     if (_tripStartAt == null) {
@@ -204,10 +226,16 @@ class TripLifecycleController extends ChangeNotifier {
   void _beginTrip(Position position, DateTime now) {
     _tripStartAt = now;
     _startLocation = _formatPosition(position);
+    _tripStartPosition = position;
+    _routePositions
+      ..clear()
+      ..add(position);
     _status = TripStatus.active;
     _distanceMeters = 0;
     _pausedDuration = Duration.zero;
     _trafficDelayDuration = Duration.zero;
+    _featureTracker.reset();
+    _featureTracker.addSample(timestamp: now, speedKmph: _currentSpeedKmph);
     _needsStopConfirmation = false;
     _startCandidateAt = null;
     _stopCandidateAt = null;
@@ -219,16 +247,36 @@ class TripLifecycleController extends ChangeNotifier {
     _commitActivePause();
     final startedAt = _tripStartAt;
     if (startedAt == null) return;
+    final rawDuration = now.difference(startedAt);
+    final correctedDuration = rawDuration - _pausedDuration;
+    final features = _featureTracker.snapshot(
+      tripDuration: correctedDuration,
+      distanceMeters: _distanceMeters,
+      now: now,
+    );
+    final prediction = transportModePredictor.predict(features);
 
     final trip = Trip(
       startLocation: _startLocation,
       endLocation: _formatPosition(position),
       distance: _distanceMeters,
-      duration: now.difference(startedAt) - _pausedDuration,
+      duration: correctedDuration,
       startTime: startedAt,
       endTime: now,
+      startLatitude: _tripStartPosition?.latitude,
+      startLongitude: _tripStartPosition?.longitude,
+      endLatitude: position.latitude,
+      endLongitude: position.longitude,
       pausedDuration: _pausedDuration,
       trafficDelayDuration: _trafficDelayDuration,
+      avgSpeedKmph: features.avgSpeedKmph,
+      idleRatio: features.idleRatio,
+      accelerationVariance: features.accelerationVariance,
+      avgStopDurationSec: features.avgStopDurationSec,
+      stopFrequencyPerHr: features.stopFrequencyPerHr,
+      mode: prediction.displayLabel,
+      modeConfidence: prediction.confidence,
+      modeSource: 'ml',
     );
 
     db.saveTrip(trip);
@@ -252,6 +300,25 @@ class TripLifecycleController extends ChangeNotifier {
     );
     if (distance >= 3 && distance <= 200) {
       _distanceMeters += distance;
+    }
+  }
+
+  void _captureRoutePoint(Position position) {
+    if (_tripStartAt == null) return;
+    if (_routePositions.isEmpty) {
+      _routePositions.add(position);
+      return;
+    }
+
+    final lastRoutePoint = _routePositions.last;
+    final distance = Geolocator.distanceBetween(
+      lastRoutePoint.latitude,
+      lastRoutePoint.longitude,
+      position.latitude,
+      position.longitude,
+    );
+    if (distance >= 2 && distance <= 200) {
+      _routePositions.add(position);
     }
   }
 
@@ -297,6 +364,8 @@ class TripLifecycleController extends ChangeNotifier {
   void _resetTripState() {
     _status = TripStatus.idle;
     _tripStartAt = null;
+    _tripStartPosition = null;
+    _routePositions.clear();
     _stopCandidateAt = null;
     _stopCenter = null;
     _pauseStartedAt = null;
@@ -306,6 +375,7 @@ class TripLifecycleController extends ChangeNotifier {
     _pausedDuration = Duration.zero;
     _trafficDelayDuration = Duration.zero;
     _crowdResult = CrowdDetectionResult.clear;
+    _featureTracker.reset();
   }
 
   @override

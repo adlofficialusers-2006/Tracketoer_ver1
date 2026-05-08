@@ -3,7 +3,9 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'modules/background/background_trip_service.dart';
 import 'modules/location/location_tracking_module.dart';
+import 'modules/ml/transport_mode_predictor.dart';
 import 'modules/storage/local_db.dart';
 import 'modules/traffic/crowd_detection_service.dart';
 import 'modules/trip/trip_lifecycle_controller.dart';
@@ -13,12 +15,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   await LocalDB.openBoxes();
+  final transportModePredictor = await TransportModePredictor.loadFromAsset();
+  await BackgroundTripService.configure();
 
-  runApp(const MyApp());
+  runApp(MyApp(transportModePredictor: transportModePredictor));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.transportModePredictor});
+
+  final TransportModePredictor transportModePredictor;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +38,7 @@ class MyApp extends StatelessWidget {
               locationModule: LocationTrackingModule(),
               db: db,
               crowdDetectionService: CrowdDetectionService(db: db),
+              transportModePredictor: transportModePredictor,
             );
           },
         ),

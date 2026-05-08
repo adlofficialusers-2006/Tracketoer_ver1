@@ -1,0 +1,52 @@
+{
+  "rows": 5000,
+  "labels": {
+    "motorcycle": 3000,
+    "car": 1400,
+    "bus": 350,
+    "heavy_vehicle": 250
+  },
+  "holdout_accuracy": 0.892,
+  "cv_accuracy_mean": 0.8928,
+  "cv_accuracy_std": 0.008908422980528043,
+  "classification_report": "               precision    recall  f1-score   support\n\n          bus       0.57      0.83      0.67        70\n          car       0.85      0.78      0.81       280\nheavy_vehicle       0.76      0.88      0.81        50\n   motorcycle       0.98      0.95      0.97       600\n\n     accuracy                           0.89      1000\n    macro avg       0.79      0.86      0.82      1000\n weighted avg       0.90      0.89      0.90      1000\n",
+  "confusion_matrix": [
+    [
+      58,
+      8,
+      4,
+      0
+    ],
+    [
+      41,
+      218,
+      10,
+      11
+    ],
+    [
+      3,
+      3,
+      44,
+      0
+    ],
+    [
+      0,
+      28,
+      0,
+      572
+    ]
+  ],
+  "classes": [
+    "bus",
+    "car",
+    "heavy_vehicle",
+    "motorcycle"
+  ],
+  "features": [
+    "avg_speed_kmph",
+    "idle_ratio",
+    "acceleration_variance",
+    "avg_stop_duration_sec",
+    "stop_frequency_per_hr"
+  ]
+}

@@ -15,7 +15,8 @@ class _ConsentScreenState extends State<ConsentScreen> {
   final LocationTrackingModule locationModule = LocationTrackingModule();
   bool locationConsent = true;
   bool isLoading = false;
-  String message = 'Enable location permission to detect trips automatically.';
+  String message =
+      'Enable always-on location permission to detect trips automatically.';
 
   Future<void> requestConsent() async {
     if (!locationConsent) {
@@ -27,7 +28,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
 
     setState(() {
       isLoading = true;
-      message = 'Requesting permission from the device...';
+      message = 'Requesting location permission from the device...';
     });
 
     final granted = await locationModule.requestPermission();
@@ -44,7 +45,8 @@ class _ConsentScreenState extends State<ConsentScreen> {
       );
     } else {
       setState(() {
-        message = 'Permission denied. Please allow access to track your trips.';
+        message =
+            'Permission denied. Please allow always-on location access to track trips.';
         locationConsent = false;
       });
     }
@@ -101,7 +103,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
                       ),
                       const SizedBox(height: 16),
                       _buildBullet(
-                        'GPS-based trip detection for start/end capture',
+                        'Background GPS trip detection for start/end capture',
                       ),
                       _buildBullet(
                         'Distance, duration, and route summary storage',
@@ -109,6 +111,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
                       _buildBullet(
                         'User-provided mode, purpose, cost, and companions',
                       ),
+                      _buildBullet('ML-based mode prediction after each trip'),
                       _buildBullet('Local storage with safe sync-ready state'),
                       const Spacer(),
                       SwitchListTile.adaptive(
@@ -120,7 +123,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
                           style: TextStyle(color: Colors.white),
                         ),
                         subtitle: const Text(
-                          'This must be enabled for trip detection to work.',
+                          'Choose Allow all the time when the device asks.',
                           style: TextStyle(color: Colors.white60),
                         ),
                         activeThumbColor: AppColors.neonBlue,

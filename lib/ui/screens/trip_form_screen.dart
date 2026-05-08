@@ -30,6 +30,7 @@ class _TripFormScreenState extends State<TripFormScreen> {
   void initState() {
     super.initState();
     mode = widget.trip.mode != 'Unknown' ? widget.trip.mode : 'Car';
+    if (mode == 'Bike') mode = 'Motorcycle';
     purpose = widget.trip.purpose != 'Unknown' ? widget.trip.purpose : 'Work';
     frequency = widget.trip.frequency != 'Unknown'
         ? widget.trip.frequency
@@ -52,6 +53,8 @@ class _TripFormScreenState extends State<TripFormScreen> {
 
     db.updateTrip(widget.tripKey, {
       'mode': mode,
+      'modeSource': 'manual',
+      'modeConfidence': widget.trip.modeConfidence,
       'purpose': purpose,
       'cost': costController.text.trim(),
       'companions': companionsController.text.trim(),
@@ -134,7 +137,14 @@ class _TripFormScreenState extends State<TripFormScreen> {
                   _buildDropdown(
                     'Mode of Transport',
                     mode,
-                    ['Car', 'Bike', 'Bus', 'Train', 'Walk'],
+                    [
+                      'Car',
+                      'Motorcycle',
+                      'Bus',
+                      'Heavy vehicle',
+                      'Train',
+                      'Walk',
+                    ],
                     (value) => setState(() => mode = value!),
                   ),
                   const SizedBox(height: 18),
