@@ -42,6 +42,7 @@ class TripLifecycleController extends ChangeNotifier {
   DateTime? _lastTrafficDelayAt;
   String _startLocation = 'Unknown';
   Position? _tripStartPosition;
+  final List<Position> _routePositions = [];
   final TripFeatureTracker _featureTracker = TripFeatureTracker();
 
   TripStatus _status = TripStatus.idle;
@@ -57,6 +58,8 @@ class TripLifecycleController extends ChangeNotifier {
   double get distanceMeters => _distanceMeters;
   double get currentSpeedKmph => _currentSpeedKmph;
   Position? get currentPosition => _currentPosition;
+  Position? get tripStartPosition => _tripStartPosition;
+  List<Position> get routePositions => List.unmodifiable(_routePositions);
   bool get needsStopConfirmation => _needsStopConfirmation;
   CrowdDetectionResult get crowdResult => _crowdResult;
   TripFeatureSnapshot get currentFeatures => _featureTracker.snapshot(
@@ -105,6 +108,7 @@ class TripLifecycleController extends ChangeNotifier {
 
     _saveMovementPing(position, now);
     _updateDistance(position);
+    _captureRoutePoint(position);
     if (_tripStartAt != null) {
       _featureTracker.addSample(timestamp: now, speedKmph: _currentSpeedKmph);
     }
@@ -223,6 +227,9 @@ class TripLifecycleController extends ChangeNotifier {
     _tripStartAt = now;
     _startLocation = _formatPosition(position);
     _tripStartPosition = position;
+    _routePositions
+      ..clear()
+      ..add(position);
     _status = TripStatus.active;
     _distanceMeters = 0;
     _pausedDuration = Duration.zero;
@@ -296,6 +303,25 @@ class TripLifecycleController extends ChangeNotifier {
     }
   }
 
+  void _captureRoutePoint(Position position) {
+    if (_tripStartAt == null) return;
+    if (_routePositions.isEmpty) {
+      _routePositions.add(position);
+      return;
+    }
+
+    final lastRoutePoint = _routePositions.last;
+    final distance = Geolocator.distanceBetween(
+      lastRoutePoint.latitude,
+      lastRoutePoint.longitude,
+      position.latitude,
+      position.longitude,
+    );
+    if (distance >= 2 && distance <= 200) {
+      _routePositions.add(position);
+    }
+  }
+
   void _markTrafficDelay(Position position, DateTime now) {
     _status = TripStatus.trafficDelay;
     _needsStopConfirmation = false;
@@ -339,6 +365,7 @@ class TripLifecycleController extends ChangeNotifier {
     _status = TripStatus.idle;
     _tripStartAt = null;
     _tripStartPosition = null;
+    _routePositions.clear();
     _stopCandidateAt = null;
     _stopCenter = null;
     _pauseStartedAt = null;
