@@ -20,7 +20,7 @@ Android release builds require a proper signing config before Play Store or fiel
 
 ## Model
 
-The trained Python model is saved at `assets/models/model.pkl`. Flutter uses `assets/models/transport_mode_model.json`, an exported decision tree that predicts `Bus`, `Car`, `Heavy vehicle`, or `Motorcycle` from:
+The trained Python model is saved at `assets/models/model.pkl`. Flutter uses `assets/models/transport_mode_model.json`, an exported XGBoost ensemble that predicts `Bus`, `Car`, `Heavy vehicle`, or `Motorcycle` from:
 
 - average speed
 - idle ratio

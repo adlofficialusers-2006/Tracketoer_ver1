@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:govt_tracker_version_1/modules/ml/transport_mode_predictor.dart';
 import 'package:govt_tracker_version_1/modules/ml/trip_feature_tracker.dart';
 import 'package:govt_tracker_version_1/modules/trip/trip_model.dart';
 
@@ -82,5 +83,64 @@ void main() {
     expect(snapshot.idleRatio, closeTo(1, 0.01));
     expect(snapshot.avgStopDurationSec, closeTo(20, 0.01));
     expect(snapshot.stopFrequencyPerHr, closeTo(180, 0.01));
+  });
+
+  test('transport mode predictor evaluates exported XGBoost trees', () {
+    final predictor = TransportModePredictor.fromJson({
+      'modelType': 'xgboost_classifier',
+      'features': [
+        'avg_speed_kmph',
+        'idle_ratio',
+        'acceleration_variance',
+        'avg_stop_duration_sec',
+        'stop_frequency_per_hr',
+      ],
+      'classes': ['car', 'bus'],
+      'imputation': {
+        'values': {
+          'avg_speed_kmph': 30,
+          'idle_ratio': 0,
+          'acceleration_variance': 0,
+          'avg_stop_duration_sec': 0,
+          'stop_frequency_per_hr': 0,
+        },
+      },
+      'xgboost': {
+        'baseScore': 0,
+        'trees': [
+          {
+            'classIndex': 0,
+            'tree': {
+              'nodeid': 0,
+              'split': 'avg_speed_kmph',
+              'split_condition': 40,
+              'yes': 1,
+              'no': 2,
+              'children': [
+                {'nodeid': 1, 'leaf': 1.25},
+                {'nodeid': 2, 'leaf': -1.25},
+              ],
+            },
+          },
+          {
+            'classIndex': 1,
+            'tree': {'nodeid': 0, 'leaf': 0},
+          },
+        ],
+      },
+    });
+
+    final prediction = predictor.predict(
+      const TripFeatureSnapshot(
+        avgSpeedKmph: 20,
+        idleRatio: 0.1,
+        accelerationVariance: 1,
+        avgStopDurationSec: 5,
+        stopFrequencyPerHr: 2,
+      ),
+    );
+
+    expect(prediction.label, 'car');
+    expect(prediction.confidence, greaterThan(0.5));
   });
 }

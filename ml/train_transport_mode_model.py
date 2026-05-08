@@ -5,13 +5,13 @@ import json
 from pathlib import Path
 
 import joblib
-import numpy as np
 import pandas as pd
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
 from sklearn.pipeline import Pipeline
-from sklearn.tree import DecisionTreeClassifier, export_text
+from sklearn.preprocessing import LabelEncoder
+from xgboost import XGBClassifier
 
 FEATURES = [
     "avg_speed_kmph",
@@ -23,34 +23,31 @@ FEATURES = [
 TARGET = "vehicle_type"
 
 
-def node_to_dict(tree: DecisionTreeClassifier, classes: list[str], node_id: int) -> dict:
-    left = int(tree.tree_.children_left[node_id])
-    right = int(tree.tree_.children_right[node_id])
-    values = tree.tree_.value[node_id][0]
-    total = float(values.sum())
-    probabilities = values / total if total else np.zeros(len(classes))
+def normalize_xgboost_node(node: dict) -> dict:
+    normalized = dict(node)
+    split = normalized.get("split")
+    if isinstance(split, str) and split.startswith("f"):
+        normalized["split"] = FEATURES[int(split[1:])]
 
-    if left == right:
-        class_index = int(np.argmax(values))
-        return {
-            "leaf": True,
-            "class": classes[class_index],
-            "confidence": float(probabilities[class_index]),
-            "probabilities": {
-                classes[index]: float(probabilities[index])
-                for index in range(len(classes))
-            },
+    children = normalized.get("children")
+    if children:
+        normalized["children"] = [
+            normalize_xgboost_node(child) for child in children
+        ]
+
+    return normalized
+
+
+def export_xgboost_trees(model: XGBClassifier, class_count: int) -> list[dict]:
+    booster = model.get_booster()
+    raw_trees = [json.loads(tree) for tree in booster.get_dump(dump_format="json")]
+    return [
+        {
+            "classIndex": index % class_count,
+            "tree": normalize_xgboost_node(tree),
         }
-
-    feature_index = int(tree.tree_.feature[node_id])
-    return {
-        "leaf": False,
-        "featureIndex": feature_index,
-        "feature": FEATURES[feature_index],
-        "threshold": float(tree.tree_.threshold[node_id]),
-        "left": node_to_dict(tree, classes, left),
-        "right": node_to_dict(tree, classes, right),
-    }
+        for index, tree in enumerate(raw_trees)
+    ]
 
 
 def train(csv_path: Path, out_dir: Path) -> dict:
@@ -61,24 +58,33 @@ def train(csv_path: Path, out_dir: Path) -> dict:
 
     x = df[FEATURES]
     y = df[TARGET].astype(str).str.lower().str.strip()
+    label_encoder = LabelEncoder()
+    encoded_y = label_encoder.fit_transform(y)
     x_train, x_test, y_train, y_test = train_test_split(
         x,
-        y,
+        encoded_y,
         test_size=0.2,
         random_state=42,
-        stratify=y,
+        stratify=encoded_y,
     )
 
     model = Pipeline(
         [
             ("imputer", SimpleImputer(strategy="median")),
             (
-                "tree",
-                DecisionTreeClassifier(
-                    max_depth=8,
-                    min_samples_leaf=4,
-                    class_weight="balanced",
+                "xgboost",
+                XGBClassifier(
+                    objective="multi:softprob",
+                    eval_metric="mlogloss",
+                    n_estimators=120,
+                    max_depth=4,
+                    learning_rate=0.08,
+                    subsample=0.9,
+                    colsample_bytree=0.9,
+                    min_child_weight=2,
+                    reg_lambda=1.0,
                     random_state=42,
+                    n_jobs=1,
                 ),
             ),
         ]
@@ -88,21 +94,32 @@ def train(csv_path: Path, out_dir: Path) -> dict:
     cv_scores = cross_val_score(
         model,
         x,
-        y,
+        encoded_y,
         cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=42),
     )
 
-    joblib.dump(model, out_dir / "model.pkl")
+    joblib.dump(
+        {
+            "pipeline": model,
+            "label_encoder": label_encoder,
+        },
+        out_dir / "model.pkl",
+    )
 
     imputer: SimpleImputer = model.named_steps["imputer"]
-    tree: DecisionTreeClassifier = model.named_steps["tree"]
-    classes = list(tree.classes_)
+    xgboost_model: XGBClassifier = model.named_steps["xgboost"]
+    classes = [str(label) for label in label_encoder.classes_]
     model_json = {
-        "modelType": "sklearn_decision_tree_classifier",
-        "version": "2026-05-07",
+        "modelType": "xgboost_classifier",
+        "version": "2026-05-08",
         "target": TARGET,
         "features": FEATURES,
         "classes": classes,
+        "xgboost": {
+            "objective": "multi:softprob",
+            "baseScore": float(xgboost_model.get_xgb_params().get("base_score") or 0),
+            "trees": export_xgboost_trees(xgboost_model, len(classes)),
+        },
         "imputation": {
             "strategy": "median",
             "values": {
@@ -110,7 +127,6 @@ def train(csv_path: Path, out_dir: Path) -> dict:
                 for feature, value in zip(FEATURES, imputer.statistics_)
             },
         },
-        "tree": node_to_dict(tree, classes, 0),
         "metrics": {
             "holdoutAccuracy": float(accuracy_score(y_test, predictions)),
             "crossValidationAccuracyMean": float(cv_scores.mean()),
@@ -124,19 +140,28 @@ def train(csv_path: Path, out_dir: Path) -> dict:
         json.dumps(model_json, indent=2),
         encoding="utf-8",
     )
-    (out_dir / "tree_rules.txt").write_text(
-        export_text(tree, feature_names=FEATURES),
+    (out_dir / "xgboost_trees.json").write_text(
+        json.dumps(model_json["xgboost"], indent=2),
         encoding="utf-8",
     )
 
+    decoded_y_test = label_encoder.inverse_transform(y_test)
+    decoded_predictions = label_encoder.inverse_transform(predictions)
     summary = {
         "rows": int(len(df)),
         "labels": y.value_counts().to_dict(),
         "holdout_accuracy": model_json["metrics"]["holdoutAccuracy"],
         "cv_accuracy_mean": model_json["metrics"]["crossValidationAccuracyMean"],
         "cv_accuracy_std": model_json["metrics"]["crossValidationAccuracyStd"],
-        "classification_report": classification_report(y_test, predictions),
-        "confusion_matrix": confusion_matrix(y_test, predictions, labels=classes).tolist(),
+        "classification_report": classification_report(
+            decoded_y_test,
+            decoded_predictions,
+        ),
+        "confusion_matrix": confusion_matrix(
+            decoded_y_test,
+            decoded_predictions,
+            labels=classes,
+        ).tolist(),
         "classes": classes,
         "features": FEATURES,
     }
