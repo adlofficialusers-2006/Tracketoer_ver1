@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
 import '../../modules/background/background_trip_service.dart';
+import '../../modules/traffic/traffic_event.dart';
 import '../../modules/trip/trip_lifecycle_controller.dart';
 import '../../modules/trip/trip_model.dart';
 import '../../ui/widgets/glass_card.dart';
