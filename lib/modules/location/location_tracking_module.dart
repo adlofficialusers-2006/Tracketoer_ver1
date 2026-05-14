@@ -23,10 +23,21 @@ class LocationTrackingModule {
     return permission == LocationPermission.always;
   }
 
-  Future<Stream<Position>?> startTracking() async {
-    bool hasPermission = await requestPermission();
-
-    if (!hasPermission) return null;
+  /// [requestPermissions] should be false when called from a background isolate
+  /// (no UI is available to show the system permission dialog).
+  Future<Stream<Position>?> startTracking({
+    bool requestPermissions = true,
+  }) async {
+    if (requestPermissions) {
+      final hasPermission = await requestPermission();
+      if (!hasPermission) return null;
+    } else {
+      final permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied ||
+          permission == LocationPermission.deniedForever) {
+        return null;
+      }
+    }
 
     return Geolocator.getPositionStream(
       locationSettings: const LocationSettings(

@@ -56,13 +56,15 @@ class _TripFormScreenState extends State<TripFormScreen> {
       'modeSource': 'manual',
       'modeConfidence': widget.trip.modeConfidence,
       'purpose': purpose,
-      'cost': costController.text.trim(),
-      'companions': companionsController.text.trim(),
+      'cost': costController.text.trim().isEmpty ? '0' : costController.text.trim(),
+      'companions': companionsController.text.trim().isEmpty ? '0' : companionsController.text.trim(),
       'frequency': frequency,
     });
 
+    // Capture messenger before pop — context is deactivated after pop.
+    final messenger = ScaffoldMessenger.of(context);
     Navigator.pop(context);
-    ScaffoldMessenger.of(context).showSnackBar(
+    messenger.showSnackBar(
       SnackBar(
         content: Text(
           'Trip details saved successfully.',
@@ -221,6 +223,7 @@ class _TripFormScreenState extends State<TripFormScreen> {
     TextEditingController controller,
     String hint, {
     bool numeric = false,
+    bool required = false,
   }) {
     return TextFormField(
       controller: controller,
@@ -237,8 +240,10 @@ class _TripFormScreenState extends State<TripFormScreen> {
           borderSide: BorderSide.none,
         ),
       ),
-      validator: (value) => value == null || value.trim().isEmpty
-          ? 'This field is required'
+      validator: required
+          ? (value) => value == null || value.trim().isEmpty
+              ? 'This field is required'
+              : null
           : null,
     );
   }

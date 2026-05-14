@@ -3,6 +3,16 @@
 *.log
 *.pyc
 *.swp
+
+# Python backend
+__pycache__/
+*.pyo
+.venv/
+venv/
+backend/natpac_trips.db
+
+# Node (legacy — no longer used)
+node_modules/
 .DS_Store
 .atom/
 .build/

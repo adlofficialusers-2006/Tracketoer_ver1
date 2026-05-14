@@ -43,6 +43,14 @@ class TransportModePredictor {
     return fromJson(jsonDecode(raw) as Map<String, dynamic>);
   }
 
+  /// Returns a no-op predictor that always outputs 'Unknown'.
+  /// Used when the model asset fails to load.
+  static TransportModePredictor fallback() => const TransportModePredictor._(
+        features: [],
+        classes: ['Unknown'],
+        imputationValues: {},
+      );
+
   static TransportModePredictor fromJson(Map<String, dynamic> json) {
     final imputation = Map<String, dynamic>.from(json['imputation'] as Map);
     final values = Map<String, dynamic>.from(imputation['values'] as Map);

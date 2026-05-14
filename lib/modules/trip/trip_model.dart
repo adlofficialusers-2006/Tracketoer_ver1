@@ -39,6 +39,8 @@ class Trip {
   final double stopFrequencyPerHr;
   final double modeConfidence;
   final String modeSource;
+  // userId links this trip to the logged-in user so the admin can filter by owner.
+  final String userId;
   String mode;
   String purpose;
   String cost;
@@ -65,6 +67,7 @@ class Trip {
     this.stopFrequencyPerHr = 0,
     this.modeConfidence = 0,
     this.modeSource = 'manual',
+    this.userId = '',
     this.mode = 'Unknown',
     this.purpose = 'Unknown',
     this.cost = '0',
@@ -93,6 +96,7 @@ class Trip {
       'stopFrequencyPerHr': stopFrequencyPerHr,
       'modeConfidence': modeConfidence,
       'modeSource': modeSource,
+      'userId': userId,
       'mode': mode,
       'purpose': purpose,
       'cost': cost,
@@ -133,6 +137,7 @@ class Trip {
           (map['stopFrequencyPerHr'] as num?)?.toDouble() ?? 0,
       modeConfidence: (map['modeConfidence'] as num?)?.toDouble() ?? 0,
       modeSource: map['modeSource'] as String? ?? 'manual',
+      userId: map['userId'] as String? ?? '',
       mode: map['mode'] as String? ?? 'Unknown',
       purpose: map['purpose'] as String? ?? 'Unknown',
       cost: map['cost'] as String? ?? '0',

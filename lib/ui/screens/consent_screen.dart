@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+
 import '../../core/constants/app_colors.dart';
+import '../../modules/auth/auth_service.dart';
 import '../../modules/location/location_tracking_module.dart';
-import '../../ui/screens/home_screen.dart';
 
 class ConsentScreen extends StatefulWidget {
   const ConsentScreen({super.key});
@@ -39,10 +41,8 @@ class _ConsentScreenState extends State<ConsentScreen> {
 
     if (granted) {
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      // Persists consent to Hive and notifies _AuthGate to re-route → HomeScreen.
+      await context.read<AuthService>().notifyConsentGranted();
     } else {
       setState(() {
         message =
@@ -70,7 +70,7 @@ class _ConsentScreenState extends State<ConsentScreen> {
                   children: [
                     const SizedBox(height: 12),
                     Text(
-                      'travel Tracker',
+                      'Travel Tracker',
                       style: TextStyle(
                         color: AppColors.neonPurple,
                         fontSize: 36,

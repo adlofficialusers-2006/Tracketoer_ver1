@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter pub *)",
+      "PowerShell(Get-ChildItem \"C:\\\\\" -Directory -Recurse -ErrorAction SilentlyContinue -Depth 2 | Where-Object { $_.Name -eq \"flutter\" } | Select-Object FullName -First 5)",
+      "Bash(del \"E:\\\\ADL\\\\newww\\\\Tracketoer_ver1\\\\.claude\\\\worktrees\\\\elated-jang-76556a\\\\lib\\\\modules\\\\auth\\\\user_model.dart\")",
+      "PowerShell(New-Item -ItemType Directory -Path \"E:\\\\ADL\\\\newww\\\\Tracketoer_ver1\\\\.claude\\\\worktrees\\\\elated-jang-76556a\\\\backend\" -Force)",
+      "Bash(Get-ChildItem -Path \"E:\\\\ADL\\\\newww\\\\Tracketoer_ver1\\\\.claude\\\\worktrees\\\\elated-jang-76556a\\\\lib\" -Recurse -Filter \"*.dart\")",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)"
+    ]
+  }
+}

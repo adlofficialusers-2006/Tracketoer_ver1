@@ -33,6 +33,8 @@ class TripLifecycleController extends ChangeNotifier {
   static const Duration stagnationDuration = Duration(minutes: 2);
 
   StreamSubscription<Position>? _positionSubscription;
+  bool _starting = false;
+  dynamic _pendingReviewKey;
   Position? _lastPosition;
   Position? _stopCenter;
   DateTime? _startCandidateAt;
@@ -72,6 +74,14 @@ class TripLifecycleController extends ChangeNotifier {
       _status != TripStatus.idle &&
       _status != TripStatus.moving;
 
+  /// Set after a trip is saved — HomeScreen watches this to show the
+  /// post-trip detail form. Call [clearPendingReview] once consumed.
+  dynamic get pendingReviewKey => _pendingReviewKey;
+  void clearPendingReview() {
+    _pendingReviewKey = null;
+    notifyListeners();
+  }
+
   Duration get elapsedDuration {
     final startedAt = _tripStartAt;
     if (startedAt == null) return Duration.zero;
@@ -84,16 +94,27 @@ class TripLifecycleController extends ChangeNotifier {
     return now.difference(startedAt) - _pausedDuration - activePause;
   }
 
-  Future<void> start() async {
-    final stream = await locationModule.startTracking();
-    if (stream == null) {
-      _status = TripStatus.idle;
-      notifyListeners();
-      return;
-    }
+  /// [requestPermissions] must be false when called from a background isolate.
+  Future<void> start({bool requestPermissions = true}) async {
+    if (_starting) return;
+    _starting = true;
+    try {
+      // Cancel any existing subscription before the async gap.
+      await _positionSubscription?.cancel();
+      _positionSubscription = null;
 
-    _positionSubscription?.cancel();
-    _positionSubscription = stream.listen(processLocation);
+      final stream = await locationModule.startTracking(
+        requestPermissions: requestPermissions,
+      );
+      if (stream == null) {
+        _status = TripStatus.idle;
+        notifyListeners();
+        return;
+      }
+      _positionSubscription = stream.listen(processLocation);
+    } finally {
+      _starting = false;
+    }
   }
 
   Future<void> stop() async {
@@ -279,7 +300,10 @@ class TripLifecycleController extends ChangeNotifier {
       modeSource: 'ml',
     );
 
-    db.saveTrip(trip);
+    db.saveTrip(trip).then((key) {
+      _pendingReviewKey = key;
+      notifyListeners();
+    });
     _resetTripState();
   }
 

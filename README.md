@@ -34,12 +34,39 @@ Retrain with:
 python ml/train_transport_mode_model.py --csv E:\ADL\ML\data.csv --out assets\models
 ```
 
-## Server sync
+## Backend
 
-Set a NATPAC endpoint at build/run time:
+The backend is a Python FastAPI server located in `backend/`.
+
+**Run locally:**
 
 ```powershell
-flutter run --dart-define=NATPAC_SYNC_ENDPOINT=https://your-server.example/trips
+cd backend
+pip install -r requirements.txt
+python main.py
 ```
 
-`TripSyncService.uploadPendingTrips()` posts unsynced trip JSON and marks successful records as synced.
+Server starts on `http://0.0.0.0:3000`. Interactive API docs at `http://localhost:3000/docs`.
+
+**Routes:**
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/api/trips` | Receive a trip from the mobile app |
+| GET | `/api/trips` | Fetch all trips (admin), supports `userId`, `mode`, `limit`, `offset` |
+| GET | `/api/stats` | Aggregate statistics |
+| GET | `/api/health` | Health check |
+
+## Run Flutter app with backend
+
+Find your PC's local IP (`ipconfig`), then:
+
+```powershell
+flutter run --dart-define=NATPAC_SYNC_ENDPOINT=http://<your-local-ip>:3000
+```
+
+Your phone and PC must be on the same Wi-Fi network. If the phone can't connect, allow port 3000 through Windows Firewall:
+
+```powershell
+New-NetFirewallRule -DisplayName "NATPAC Backend" -Direction Inbound -Protocol TCP -LocalPort 3000 -Action Allow
+```
