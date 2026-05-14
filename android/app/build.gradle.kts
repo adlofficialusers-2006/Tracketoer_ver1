@@ -16,7 +16,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -27,13 +27,29 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        manifestPlaceholders["MAPS_API_KEY"] =
+            (project.findProperty("MAPS_API_KEY") as String?) ?: ""
+        ndk {
+            abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            storeFile = System.getenv("RELEASE_STORE_FILE")?.let { File(it) }
+                ?: signingConfigs.getByName("debug").storeFile
+            storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                ?: signingConfigs.getByName("debug").storePassword
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                ?: signingConfigs.getByName("debug").keyAlias
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+                ?: signingConfigs.getByName("debug").keyPassword
+        }
     }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

@@ -7,15 +7,18 @@ class LocalDB {
   static const tripsBox = 'trips';
   static const movementLogsBox = 'movement_logs';
   static const trafficEventsBox = 'traffic_events';
+  static const settingsBox = 'settings';
 
   final Box<dynamic> box = Hive.box(tripsBox);
   final Box<dynamic> movementBox = Hive.box(movementLogsBox);
   final Box<dynamic> trafficBox = Hive.box(trafficEventsBox);
+  final Box<dynamic> settingsBoxInstance = Hive.box(settingsBox);
 
   static Future<void> openBoxes() async {
     await Hive.openBox(tripsBox);
     await Hive.openBox(movementLogsBox);
     await Hive.openBox(trafficEventsBox);
+    await Hive.openBox(settingsBox);
   }
 
   void saveTrip(Trip trip) {
@@ -75,5 +78,22 @@ class LocalDB {
         .whereType<Map>()
         .map(TrafficEvent.fromMap)
         .toList();
+  }
+
+  // Settings methods
+  bool getLocationConsentGiven() {
+    return settingsBoxInstance.get('location_consent_given', defaultValue: false);
+  }
+
+  void setLocationConsentGiven(bool given) {
+    settingsBoxInstance.put('location_consent_given', given);
+  }
+
+  dynamic getSetting(String key, {dynamic defaultValue}) {
+    return settingsBoxInstance.get(key, defaultValue: defaultValue);
+  }
+
+  void setSetting(String key, dynamic value) {
+    settingsBoxInstance.put(key, value);
   }
 }

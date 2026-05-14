@@ -85,15 +85,21 @@ class TripLifecycleController extends ChangeNotifier {
   }
 
   Future<void> start() async {
-    final stream = await locationModule.startTracking();
-    if (stream == null) {
+    try {
+      final stream = await locationModule.startTracking();
+      if (stream == null) {
+        _status = TripStatus.idle;
+        notifyListeners();
+        return;
+      }
+
+      _positionSubscription?.cancel();
+      _positionSubscription = stream.listen(processLocation);
+    } catch (e) {
+      debugPrint('Error starting trip lifecycle controller: $e');
       _status = TripStatus.idle;
       notifyListeners();
-      return;
     }
-
-    _positionSubscription?.cancel();
-    _positionSubscription = stream.listen(processLocation);
   }
 
   Future<void> stop() async {
@@ -102,25 +108,29 @@ class TripLifecycleController extends ChangeNotifier {
   }
 
   void processLocation(Position position) {
-    final now = DateTime.now();
-    _currentPosition = position;
-    _currentSpeedKmph = (position.speed * 3.6).clamp(0, 220).toDouble();
+    try {
+      final now = DateTime.now();
+      _currentPosition = position;
+      _currentSpeedKmph = (position.speed * 3.6).clamp(0, 220).toDouble();
 
-    _saveMovementPing(position, now);
-    _updateDistance(position);
-    _captureRoutePoint(position);
-    if (_tripStartAt != null) {
-      _featureTracker.addSample(timestamp: now, speedKmph: _currentSpeedKmph);
+      _saveMovementPing(position, now);
+      _updateDistance(position);
+      _captureRoutePoint(position);
+      if (_tripStartAt != null) {
+        _featureTracker.addSample(timestamp: now, speedKmph: _currentSpeedKmph);
+      }
+      _lastPosition = position;
+
+      if (_tripStartAt == null) {
+        _evaluateAutoStart(position, now);
+      } else {
+        _evaluateActiveTrip(position, now);
+      }
+
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error processing location: $e');
     }
-    _lastPosition = position;
-
-    if (_tripStartAt == null) {
-      _evaluateAutoStart(position, now);
-    } else {
-      _evaluateActiveTrip(position, now);
-    }
-
-    notifyListeners();
   }
 
   void manualStart() {

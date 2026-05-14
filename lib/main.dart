@@ -8,6 +8,8 @@ import 'modules/location/location_tracking_module.dart';
 import 'modules/ml/transport_mode_predictor.dart';
 import 'modules/storage/local_db.dart';
 import 'modules/traffic/crowd_detection_service.dart';
+import 'ui/screens/consent_screen.dart';
+import 'ui/screens/home_screen.dart';
 import 'modules/trip/trip_lifecycle_controller.dart';
 import 'ui/screens/consent_screen.dart';
 
@@ -18,13 +20,25 @@ Future<void> main() async {
   final transportModePredictor = await TransportModePredictor.loadFromAsset();
   await BackgroundTripService.configure();
 
-  runApp(MyApp(transportModePredictor: transportModePredictor));
+  // Check if location consent was already given
+  final db = LocalDB();
+  final consentGiven = db.getLocationConsentGiven();
+
+  runApp(MyApp(
+    transportModePredictor: transportModePredictor,
+    showConsentScreen: !consentGiven,
+  ));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.transportModePredictor});
+  const MyApp({
+    super.key,
+    required this.transportModePredictor,
+    this.showConsentScreen = true,
+  });
 
   final TransportModePredictor transportModePredictor;
+  final bool showConsentScreen;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +61,7 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         title: 'Travel Tracker',
         theme: AppTheme.dark,
-        home: const ConsentScreen(),
+        home: showConsentScreen ? const ConsentScreen() : HomeScreen(),
       ),
     );
   }

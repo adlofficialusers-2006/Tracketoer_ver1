@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../modules/location/location_tracking_module.dart';
+import '../../modules/storage/local_db.dart';
 import '../../ui/screens/home_screen.dart';
 
 class ConsentScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class ConsentScreen extends StatefulWidget {
 
 class _ConsentScreenState extends State<ConsentScreen> {
   final LocationTrackingModule locationModule = LocationTrackingModule();
+  final LocalDB db = LocalDB();
   bool locationConsent = true;
   bool isLoading = false;
   String message =
@@ -38,6 +40,8 @@ class _ConsentScreenState extends State<ConsentScreen> {
     });
 
     if (granted) {
+      // Save consent status
+      db.setLocationConsentGiven(true);
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
@@ -61,13 +65,9 @@ class _ConsentScreenState extends State<ConsentScreen> {
           builder: (context, constraints) {
             return SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - 40,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                     const SizedBox(height: 12),
                     Text(
                       'travel Tracker',
@@ -180,7 +180,6 @@ class _ConsentScreenState extends State<ConsentScreen> {
                     ),
                   ],
                 ),
-              ),
             );
           },
         ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -23,10 +24,10 @@ class BackgroundTripService {
         onStart: _onStart,
         autoStart: false,
         isForegroundMode: true,
-        notificationChannelId: _channelId,
         initialNotificationTitle: 'Travel tracking active',
         initialNotificationContent: 'Capturing trip movement in background',
         foregroundServiceNotificationId: _notificationId,
+        foregroundServiceTypes: const [AndroidForegroundType.location],
       ),
       iosConfiguration: IosConfiguration(
         autoStart: false,
@@ -40,7 +41,14 @@ class BackgroundTripService {
     final service = FlutterBackgroundService();
     final isRunning = await service.isRunning();
     if (!isRunning) {
-      await service.startService();
+      try {
+        final started = await service.startService();
+        if (!started) {
+          debugPrint('Background service did not start successfully.');
+        }
+      } catch (e, st) {
+        debugPrint('Failed to start background service: $e\n$st');
+      }
     }
   }
 
@@ -48,7 +56,11 @@ class BackgroundTripService {
     final service = FlutterBackgroundService();
     final isRunning = await service.isRunning();
     if (isRunning) {
-      service.invoke('stopService');
+      try {
+        service.invoke('stopService');
+      } catch (e, st) {
+        debugPrint('Failed to stop background service: $e\n$st');
+      }
     }
   }
 }
@@ -84,7 +96,15 @@ Future<void> _onStart(ServiceInstance service) async {
     deviceId: 'background-device',
   );
 
-  await controller.start();
+  try {
+    await controller.start();
+  } catch (e, st) {
+    debugPrint('Background trip controller failed to start: $e\n$st');
+    if (service is AndroidServiceInstance) {
+      service.stopSelf();
+    }
+    return;
+  }
 
   Timer? heartbeat;
   heartbeat = Timer.periodic(const Duration(seconds: 30), (_) {

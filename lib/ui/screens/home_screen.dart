@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -48,8 +50,15 @@ class _HomeScreenState extends State<HomeScreen>
     );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _mapReady = true);
-      BackgroundTripService.stop();
-      context.read<TripLifecycleController>().start();
+      try {
+        BackgroundTripService.stop();
+        if (mounted) {
+          context.read<TripLifecycleController>().start();
+        }
+      } catch (e) {
+        // Handle background service errors gracefully
+        debugPrint('Error in home screen initialization: $e');
+      }
     });
   }
 
@@ -64,18 +73,26 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final tracker = context.read<TripLifecycleController>();
-    if (state == AppLifecycleState.resumed) {
-      BackgroundTripService.stop();
-      tracker.start();
-      return;
-    }
+    unawaited(_handleAppLifecycleState(state));
+  }
 
-    if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
-      tracker.stop();
-      BackgroundTripService.start();
+  Future<void> _handleAppLifecycleState(AppLifecycleState state) async {
+    try {
+      final tracker = context.read<TripLifecycleController>();
+      debugPrint('App lifecycle changed: $state');
+      if (state == AppLifecycleState.resumed) {
+        await BackgroundTripService.stop();
+        await tracker.start();
+        return;
+      }
+
+      if (state == AppLifecycleState.paused ||
+          state == AppLifecycleState.inactive) {
+        await tracker.stop();
+        await BackgroundTripService.start();
+      }
+    } catch (e, st) {
+      debugPrint('Error in app lifecycle state change: $e\n$st');
     }
   }
 
