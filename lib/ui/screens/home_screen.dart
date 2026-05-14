@@ -5,12 +5,16 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/formatters.dart';
+import '../../modules/auth/auth_service.dart';
 import '../../modules/background/background_trip_service.dart';
-import '../../modules/traffic/traffic_event.dart';
+import '../../modules/storage/local_db.dart';
+import '../../modules/sync/auto_sync_service.dart';
 import '../../modules/trip/trip_lifecycle_controller.dart';
 import '../../modules/trip/trip_model.dart';
 import '../../ui/widgets/glass_card.dart';
+import '../../ui/widgets/post_trip_sheet.dart';
 import '../../ui/widgets/pulse_badge.dart';
+import 'settings_screen.dart';
 import 'trip_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -28,6 +32,8 @@ class _HomeScreenState extends State<HomeScreen>
   final MapController _mapController = MapController();
   late final AnimationController _markerController;
   late Animation<double> _markerAnimation;
+  late final AutoSyncService _autoSync;
+  TripLifecycleController? _tracker;
   LatLng? _markerAnimationStart;
   LatLng? _markerAnimationEnd;
   LatLng? _lastSyncedTarget;
@@ -46,15 +52,39 @@ class _HomeScreenState extends State<HomeScreen>
       parent: _markerController,
       curve: Curves.easeOutCubic,
     );
+    _autoSync = AutoSyncService(db: context.read<LocalDB>())..start();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) setState(() => _mapReady = true);
+      if (!mounted) return;
+      setState(() => _mapReady = true);
+      final tracker = context.read<TripLifecycleController>();
+      _tracker = tracker;
       BackgroundTripService.stop();
-      context.read<TripLifecycleController>().start();
+      tracker.start();
+      tracker.addListener(_onTrackerChanged);
+    });
+  }
+
+  void _onTrackerChanged() {
+    final tracker = _tracker;
+    if (tracker == null) return;
+    final key = tracker.pendingReviewKey;
+    if (key == null) return;
+    tracker.clearPendingReview();
+    // Small delay so the trip-end UI settles before the sheet appears.
+    Future.delayed(const Duration(milliseconds: 400), () {
+      if (!mounted) return;
+      showPostTripSheet(
+        context,
+        tripKey: key,
+        db: context.read<LocalDB>(),
+      );
     });
   }
 
   @override
   void dispose() {
+    _autoSync.stop();
+    _tracker?.removeListener(_onTrackerChanged);
     WidgetsBinding.instance.removeObserver(this);
     _markerController
       ..removeListener(_updateAnimatedMarker)
@@ -64,16 +94,22 @@ class _HomeScreenState extends State<HomeScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    final tracker = context.read<TripLifecycleController>();
+    final tracker = _tracker;
+    if (tracker == null) return;
     if (state == AppLifecycleState.resumed) {
-      BackgroundTripService.stop();
-      tracker.start();
+      // Wait for background service to stop before starting the foreground tracker
+      // so both don't hold the location stream simultaneously.
+      BackgroundTripService.stop().then((_) {
+        if (mounted) tracker.start();
+      });
       return;
     }
 
+    // Only hand off to the background service when the app is fully backgrounded.
+    // Ignore `inactive` (e.g. notification shade pulled down) to avoid
+    // constantly stopping/restarting tracking on trivial interruptions.
     if (state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached ||
-        state == AppLifecycleState.inactive) {
+        state == AppLifecycleState.detached) {
       tracker.stop();
       BackgroundTripService.start();
     }
@@ -91,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: _buildDrawer(context),
       floatingActionButton: FloatingActionButton(
         backgroundColor: tracker.hasActiveTrip
             ? AppColors.neonPurple
@@ -823,6 +860,204 @@ class _HomeScreenState extends State<HomeScreen>
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const TripListScreen()),
+    );
+  }
+
+  Widget _buildDrawer(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    final user = auth.currentUser;
+    final initials = user == null || user.name.trim().isEmpty
+        ? '?'
+        : user.name.trim().split(' ').take(2).map((w) => w[0].toUpperCase()).join();
+
+    return Drawer(
+      backgroundColor: AppColors.surface,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Profile header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.panel,
+                border: Border(
+                  bottom: BorderSide(color: AppColors.border),
+                ),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: BoxDecoration(
+                      color: AppColors.neonPurple.withValues(alpha: 0.22),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.neonPurple.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Text(
+                        initials,
+                        style: TextStyle(
+                          color: AppColors.neonPurple,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 26,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    user?.name ?? 'User',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user?.email ?? '',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.neonBlue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppColors.neonBlue.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      'NATPAC Contributor',
+                      style: TextStyle(
+                        color: AppColors.neonBlue,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Menu items
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                children: [
+                  _DrawerItem(
+                    icon: Icons.home_rounded,
+                    label: 'Dashboard',
+                    active: true,
+                    onTap: () => Navigator.pop(context),
+                  ),
+                  _DrawerItem(
+                    icon: Icons.history_rounded,
+                    label: 'My Trips',
+                    onTap: () {
+                      Navigator.pop(context);
+                      _openTrips();
+                    },
+                  ),
+                  _DrawerItem(
+                    icon: Icons.settings_rounded,
+                    label: 'Settings',
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+
+            // Logout at bottom
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _handleLogout(auth),
+                  icon: const Icon(Icons.logout_rounded, size: 18),
+                  label: const Text('Sign out'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleLogout(AuthService auth) async {
+    await auth.logout();
+  }
+}
+
+class _DrawerItem extends StatelessWidget {
+  const _DrawerItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.active = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: active
+              ? AppColors.neonPurple.withValues(alpha: 0.18)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(
+          icon,
+          color: active ? AppColors.neonPurple : AppColors.textSecondary,
+          size: 20,
+        ),
+      ),
+      title: Text(
+        label,
+        style: TextStyle(
+          color: active ? Colors.white : AppColors.textSecondary,
+          fontWeight: active ? FontWeight.w700 : FontWeight.normal,
+        ),
+      ),
+      onTap: onTap,
     );
   }
 }

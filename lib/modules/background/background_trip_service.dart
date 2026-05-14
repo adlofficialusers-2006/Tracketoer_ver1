@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_background_service/flutter_background_service.dart';
+import 'package:flutter_background_service_android/flutter_background_service_android.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import '../location/location_tracking_module.dart';
@@ -63,44 +64,56 @@ Future<bool> _onIosBackground(ServiceInstance service) async {
 Future<void> _onStart(ServiceInstance service) async {
   DartPluginRegistrant.ensureInitialized();
 
-  await Hive.initFlutter();
-  await LocalDB.openBoxes();
+  try {
+    await Hive.initFlutter();
+    await LocalDB.openBoxes();
 
-  if (service is AndroidServiceInstance) {
-    await service.setAsForegroundService();
-    service.setForegroundNotificationInfo(
-      title: 'Travel tracking active',
-      content: 'Automatic trip detection is running',
-    );
-  }
-
-  final db = LocalDB();
-  final predictor = await TransportModePredictor.loadFromAsset();
-  final controller = TripLifecycleController(
-    locationModule: LocationTrackingModule(),
-    db: db,
-    crowdDetectionService: CrowdDetectionService(db: db),
-    transportModePredictor: predictor,
-    deviceId: 'background-device',
-  );
-
-  await controller.start();
-
-  Timer? heartbeat;
-  heartbeat = Timer.periodic(const Duration(seconds: 30), (_) {
     if (service is AndroidServiceInstance) {
+      await service.setAsForegroundService();
       service.setForegroundNotificationInfo(
         title: 'Travel tracking active',
-        content:
-            '${controller.status.label} - ${controller.currentSpeedKmph.toStringAsFixed(1)} km/h',
+        content: 'Automatic trip detection is running',
       );
     }
-  });
 
-  service.on('stopService').listen((_) async {
-    heartbeat?.cancel();
-    await controller.stop();
-    controller.dispose();
+    final db = LocalDB();
+    TransportModePredictor predictor;
+    try {
+      predictor = await TransportModePredictor.loadFromAsset();
+    } catch (_) {
+      predictor = TransportModePredictor.fallback();
+    }
+    final controller = TripLifecycleController(
+      locationModule: LocationTrackingModule(),
+      db: db,
+      crowdDetectionService: CrowdDetectionService(db: db),
+      transportModePredictor: predictor,
+      deviceId: 'background-device',
+    );
+
+    // Must NOT request permissions from a background isolate — no UI available.
+    await controller.start(requestPermissions: false);
+
+    Timer? heartbeat;
+    heartbeat = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (service is AndroidServiceInstance) {
+        service.setForegroundNotificationInfo(
+          title: 'Travel tracking active',
+          content:
+              '${controller.status.label} · ${controller.currentSpeedKmph.toStringAsFixed(1)} km/h',
+        );
+      }
+    });
+
+    service.on('stopService').listen((_) async {
+      heartbeat?.cancel();
+      await controller.stop();
+      controller.dispose();
+      service.stopSelf();
+    });
+  } catch (e) {
+    // If anything fails during setup, stop the service cleanly rather than
+    // leaving a zombie foreground notification.
     service.stopSelf();
-  });
+  }
 }
