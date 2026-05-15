@@ -32,9 +32,13 @@ class _TripListScreenState extends State<TripListScreen> {
   List<Map<String, dynamic>> _applyFilters(List<Map<String, dynamic>> trips) {
     return trips.where((t) {
       if (_filterMode != null &&
-          (t['mode'] as String? ?? 'Unknown') != _filterMode) return false;
+          (t['mode'] as String? ?? 'Unknown') != _filterMode) {
+        return false;
+      }
       if (_filterPurpose != null &&
-          (t['purpose'] as String? ?? 'Unknown') != _filterPurpose) return false;
+          (t['purpose'] as String? ?? 'Unknown') != _filterPurpose) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -289,7 +293,7 @@ class _TripListScreenState extends State<TripListScreen> {
                       )
                     : ListView.separated(
                         padding: const EdgeInsets.all(20),
-                        separatorBuilder: (_, __) =>
+                        separatorBuilder: (_, _) =>
                             const SizedBox(height: 16),
                         itemCount: trips.length,
                         itemBuilder: (context, index) {

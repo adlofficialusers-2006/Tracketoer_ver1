@@ -86,7 +86,7 @@ class TripSyncService {
     if (userId != null && userId.isNotEmpty) params['userId'] = userId;
     if (mode != null && mode.isNotEmpty) params['mode'] = mode;
     if (params.isNotEmpty) {
-      url += '?' + params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&');
+      url += '?${params.entries.map((e) => '${e.key}=${Uri.encodeComponent(e.value)}').join('&')}';
     }
 
     final uri = Uri.parse(url);

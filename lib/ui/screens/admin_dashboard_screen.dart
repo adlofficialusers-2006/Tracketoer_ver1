@@ -158,7 +158,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildLocalDataTab(AuthService auth) {
     return ValueListenableBuilder(
       valueListenable: _db.box.listenable(),
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         final allTrips = _db.getTripsWithKeys();
         final List<AppUser> users = auth.getAllUsers();
         final filtered = _applyFilter(allTrips);
@@ -196,19 +196,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                             index == filtered.length - 1 ? 32 : 0,
                           ),
                           child: _AdminTripCard(
-  trip: trip,
-  auth: auth,
-  tripKey: trip['key'],
-),
+                            trip: trip,
+                            auth: auth,
+                            tripKey: trip['key'],
+                          ),
                         );
                       },
                       childCount: filtered.length,
                     ),
                   ),
-          ],
-          );
-        },
-      ),
+            ],
+        );
+      },
     );
   }
 
@@ -666,7 +665,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   Widget _buildServerDataTab(AuthService auth) {
     return ValueListenableBuilder(
       valueListenable: _db.serverTripsBox.listenable(),
-      builder: (context, _, __) {
+      builder: (context, _, _) {
         final serverTrips = _db.getServerTrips();
 
         if (serverTrips.isEmpty) {

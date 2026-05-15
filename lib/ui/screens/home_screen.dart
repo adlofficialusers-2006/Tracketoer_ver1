@@ -9,6 +9,7 @@ import '../../modules/auth/auth_service.dart';
 import '../../modules/background/background_trip_service.dart';
 import '../../modules/storage/local_db.dart';
 import '../../modules/sync/auto_sync_service.dart';
+import '../../modules/traffic/traffic_event.dart';
 import '../../modules/trip/trip_lifecycle_controller.dart';
 import '../../modules/trip/trip_model.dart';
 import '../../ui/widgets/glass_card.dart';
